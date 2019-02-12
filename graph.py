@@ -8,7 +8,9 @@ class graph(object):
             self.adjacencyList[n] = []
     
     def addDirectedEdge(self, n, m, weight=None):
-        weight = self.defaultWeight if weight == None else weight
+        if n == m:
+            return
+        weight = self.defaultWeight if weight == None or weight <= 0 else weight
         if self.validNode(n):
             self.addNode(n)
         if self.validNode(m):

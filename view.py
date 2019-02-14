@@ -1,4 +1,5 @@
 import graph
+import vector
 import forceDirectedEngine as fde
 import sys
 import pyqtgraph as pg
@@ -14,8 +15,12 @@ class applicationWindow(pg.GraphicsWindow):
         self.graph = self.addPlot()
         self.graph.resize(1000,800)
         self.graphPlot(self.forceDirectedEngine.nodeCoordinates, self.forceDirectedEngine.graph)
-
         self.graph.scene().sigMouseMoved.connect(self.showNode)
+
+        self.label = pg.LabelItem(justify="right")
+        self.label.setMinimumWidth(1000)
+        self.addItem(self.label)
+
 
     def update(self):
         pass
@@ -24,7 +29,6 @@ class applicationWindow(pg.GraphicsWindow):
     # a dict containing node name as key and vector.vector as value
     # a graph.graph item and plots the points and edges
     def graphPlot(self, coordinates, graph):
-        #plotItem = self.graph.getPlotItem()
         xVals = []
         yVals = []
         nodes = graph.getNodes()
@@ -33,9 +37,6 @@ class applicationWindow(pg.GraphicsWindow):
             xVals.append(round(v.x, 3))
             yVals.append(round(v.y, 3))
 
-        print(xVals)
-        print(yVals)
-        
         self.graph.plot(x=xVals, y=yVals, pen=None, symbol='o', symbolSize=10, symbolBrush=(100,100,100))
 
         for n in nodes:
@@ -45,9 +46,18 @@ class applicationWindow(pg.GraphicsWindow):
                 w = coordinates[e[0]]
                 self.graph.plot(x=[v.x, w.x], y=[v.y, w.y], pen='b')
 
-    def showNode(self, node):
-        print(node)
-        
+    def showNode(self, evt):
+        mouseCoord = self.graph.vb.mapSceneToView(evt)
+        pos = vector.vector(mouseCoord.x(), mouseCoord.y())
+        coordinates = self.forceDirectedEngine.nodeCoordinates
+        epsilon = 0.5
+
+        for v in coordinates:
+            if (pos - coordinates[v]).length() < epsilon:
+                self.label.setText(v)
+                return
+        #self.label.setText("")
+
         
 if __name__ =='__main__':
     app = QApplication(sys.argv)
@@ -55,10 +65,15 @@ if __name__ =='__main__':
     graph.addNode("a")
     graph.addNode("b")
     graph.addNode("c")
+    graph.addNode("d")
+    graph.addNode("e")
 
     graph.addUndirectedEdge("a", "b")
     graph.addUndirectedEdge("a", "c")
     graph.addUndirectedEdge("b", "c")
+    graph.addUndirectedEdge("a", "e")
+    graph.addUndirectedEdge("b", "d", weight=100)
+
     engine = fde.forceDirectedEngine(graph)
     win = applicationWindow(engine)
     win.resize(1000,800)

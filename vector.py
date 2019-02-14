@@ -48,9 +48,3 @@ class vector(object):
     
     def __repr__(self):
         return self.__str__()
-
-if __name__ == '__main__':
-    v = vector(1,2)
-    w = vector(1,3)
-    a = v + 1
-    print(a.x, a.y)

@@ -43,26 +43,3 @@ class graph(object):
             for v in self.adjacencyList[key]:
                 print(v, "-> ", end="")
             print()
-
-if __name__ == "__main__":
-    g = graph()
-    
-    g.addNode(1)
-    g.addNode(2)
-    g.addNode(3)
-    g.addNode(4)
-    g.addNode(5)
-    g.addNode(6)
-
-    g.addDirectedEdge(1,2,101)
-    g.addUndirectedEdge(3,4, 102)
-    g.addUndirectedEdge(1,2, 103)
-    g.addDirectedEdge(1,3,104)
-    g.addDirectedEdge(1,4,105)
-    g.addDirectedEdge(1,5,106)
-    g.addDirectedEdge(1,6,107)
-
-    g.show()
-
-
-    

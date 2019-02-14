@@ -39,8 +39,8 @@ class vector(object):
     def __iadd__(self, other):
         if type(other) != type(self):
             raise TypeError("must be {} not {}".format(vector, type(other)))
-        self.x -= other.x
-        self.y -= other.y
+        self.x += other.x
+        self.y += other.y
         return self
 
     def __str__(self):

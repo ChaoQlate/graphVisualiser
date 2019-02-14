@@ -11,20 +11,19 @@ class forceDirectedEngine():
         ## in the case of one node, the node is centred
         nodes = self.graph.getNodes()
         numNodes = len(nodes)
-        angleInteval = 2 * math.pi / numNodes
+        angleInteval = 2 * math.pi / numNodes if numNodes != 0 else 1
         radius = numNodes * 1 / (2 * math.pi) if numNodes != 1 else 0
         for i in range(numNodes):
             self.nodeCoordinates[nodes[i]] = \
                 vector.vector(radius * math.cos(i * angleInteval), radius * math.sin(i * angleInteval))
 
-        for i in range(numNodes):
-            print(self.nodeCoordinates[nodes[i]])
         self.simulate()
 
     def simulate(self):
         nodes = self.graph.getNodes()
         toDo = [x[:] for x in [[True] * len(nodes)] * len(nodes)]
         newNodeCoordinates = copy.deepcopy(self.nodeCoordinates)
+
 
         # loop through nodes
             # push/pull the other nodes not yet done in the todo array
@@ -33,7 +32,7 @@ class forceDirectedEngine():
         for i in range(len(nodes)):
             edges = self.graph.getEdges(nodes[i])
             for e in edges:
-                if toDo[i][e[0]] == False:
+                if toDo[i][nodes.index(e[0])] == False:
                     continue
                 v = self.nodeCoordinates[e[0]] - self.nodeCoordinates[nodes[i]]
                 d = v.length()
@@ -43,19 +42,17 @@ class forceDirectedEngine():
                 newNodeCoordinates[nodes[i]] += v
                 newNodeCoordinates[e[0]] += v * -1
 
-                toDo[i][e[0]] = False
+                toDo[i][nodes.index(e[0])] = False
             for j in range(len(nodes)):
                 if toDo[i][j] == True and i != j:
-                    v = self.nodeCoordinates[j] - self.nodeCoordinates[nodes[i]]
+                    v = self.nodeCoordinates[nodes[j]] - self.nodeCoordinates[nodes[i]]
                     d = v.length()
                     f = - self.repulsion(d)
-
-                    if v.unitVector() == None:
-                        print(v)
                     v = v.unitVector() * f
 
                     newNodeCoordinates[nodes[i]] += v
-                    newNodeCoordinates[j] += v * -1
+                    newNodeCoordinates[nodes[j]] += v * -1
+
                 toDo[i][j] = False
         self.nodeCoordinates = newNodeCoordinates
 
@@ -68,5 +65,3 @@ class forceDirectedEngine():
     @staticmethod
     def repulsion(distance, dampening=1):
         return dampening / distance**2 if distance != 0 else 100
-
-

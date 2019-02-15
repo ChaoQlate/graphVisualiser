@@ -34,7 +34,7 @@ class vector(object):
     def __div__(self, other):
         if type(other) not in [int, float]:
             raise TypeError("scalar divisor must be int or float not {}".format(type(other)))
-        return vector(self.x * other, self.y * other)
+        return vector(self.x / other, self.y / other)
 
     def __iadd__(self, other):
         if type(other) != type(self):
@@ -44,7 +44,7 @@ class vector(object):
         return self
 
     def __str__(self):
-        return "(" + str(self.x) + "," + str(self.y) + ")"
+        return "(" + str(round(self.x, 3)) + "," + str(round(self.y, 3)) + ")"
     
     def __repr__(self):
         return self.__str__()

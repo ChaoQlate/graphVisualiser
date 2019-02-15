@@ -17,7 +17,8 @@ class forceDirectedEngine():
             self.nodeCoordinates[nodes[i]] = \
                 vector.vector(radius * math.cos(i * angleInteval), radius * math.sin(i * angleInteval))
 
-        self.simulate()
+        for _ in range(70):
+            self.simulate()
 
     def simulate(self):
         nodes = self.graph.getNodes()
@@ -36,8 +37,8 @@ class forceDirectedEngine():
                     continue
                 v = self.nodeCoordinates[e[0]] - self.nodeCoordinates[nodes[i]]
                 d = v.length()
-                f = self.attraction(d, e[1]) - self.repulsion(d)
-                v = v.unitVector() * f
+                f = self.attraction(d, e[1] * 0.001) - self.repulsion(d)
+                v = v.unitVector() * (f / v.length())
 
                 newNodeCoordinates[nodes[i]] += v
                 newNodeCoordinates[e[0]] += v * -1
@@ -48,7 +49,7 @@ class forceDirectedEngine():
                     v = self.nodeCoordinates[nodes[j]] - self.nodeCoordinates[nodes[i]]
                     d = v.length()
                     f = - self.repulsion(d)
-                    v = v.unitVector() * f
+                    v = v.unitVector() * (f / v.length())
 
                     newNodeCoordinates[nodes[i]] += v
                     newNodeCoordinates[nodes[j]] += v * -1
@@ -63,5 +64,5 @@ class forceDirectedEngine():
 
     ## replusion based on coulombs law
     @staticmethod
-    def repulsion(distance, dampening=1):
-        return dampening / distance**2 if distance != 0 else 100
+    def repulsion(distance, dampening=30):
+        return dampening / distance if distance != 0 else 100

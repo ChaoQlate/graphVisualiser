@@ -1,45 +1,50 @@
-import graph
-import vector
-import forceDirectedEngine as fde
-import sys
+from PyQt5.QtWidgets import QApplication, QGridLayout, QPushButton, QWidget
+from PyQt5 import QtCore
 import pyqtgraph as pg
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QWidget
+import forceDirectedEngine as fde
+import vector
+import time
+import queue
 
-class applicationWindow(pg.GraphicsWindow):
+class applicationWindow(QWidget, QtCore.QObject):
     def __init__(self, fde, parent=None):
+        pg.setConfigOption('background', 'w')
+        pg.setConfigOption('foreground', 'k')
+
         super(applicationWindow, self).__init__(parent)
 
         self.forceDirectedEngine = fde
 
-        self.axisItemB = pg.AxisItem("bottom", showValues=False, maxTickLength=0)
-        #self.axisItemT = pg.AxisItem("top", showValues=False, maxTickLength=0)
-        self.axisItemL = pg.AxisItem("left", showValues=False, maxTickLength=0)
-        #self.axisItemR = pg.AxisItem("right", showValues=False, maxTickLength=0)
+        self.axisItemB = pg.AxisItem("bottom", showValues=False, maxTickLength=0, pen='w')
+        self.axisItemL = pg.AxisItem("left", showValues=False, maxTickLength=0, pen='w')
+        self.graph = pg.PlotWidget(axisItems={"bottom" : self.axisItemB, "left" : self.axisItemL}, title="")
+        self.graph.resize(1000,1000)
 
-        #self.graph = self.addPlot(axisItems={"bottom" : self.axisItemB, "top" : self.axisItemT, "left" : self.axisItemL, "right" : self.axisItemR})
-        self.graph = self.addPlot(axisItems={"bottom" : self.axisItemB, "left" : self.axisItemL})
+        self.plotGraph(self.forceDirectedEngine.nodeCoordinates, self.forceDirectedEngine.graph)
+        self.graph.scene().sigMouseMoved.connect(self.showNearestNode)
 
-        self.graph.resize(1000,800)
-        self.graphPlot(self.forceDirectedEngine.nodeCoordinates, self.forceDirectedEngine.graph)
-        self.graph.scene().sigMouseMoved.connect(self.showNode)
+        self.queue = None
 
-    def update(self):
-        pass
+        button = QPushButton("Next")
+        button.clicked.connect(self.showNextNode)
+        layout = QGridLayout()
+        layout.addWidget(button, 0, 0)
+        layout.addWidget(self.graph, 1, 0)
+
+        self.setLayout(layout)
+
+    def showNextNode(self):
+        if self.queue.empty():
+            return
+        self.showNode(self.queue.get())
 
     # takes in 
     # a dict containing node name as key and vector.vector as value
     # a graph.graph item and plots the points and edges
-    def graphPlot(self, coordinates, graph):
+    def plotGraph(self, coordinates, graph):
         xVals = []
         yVals = []
         nodes = graph.getNodes()
-        for n in nodes:
-            v = coordinates[n]
-            xVals.append(round(v.x, 3))
-            yVals.append(round(v.y, 3))
-
-        self.graph.plot(x=xVals, y=yVals, pen=None, symbol='o', symbolSize=10, symbolBrush=(255,0,0))
 
         for n in nodes:
             edges = graph.getEdges(n)
@@ -48,83 +53,41 @@ class applicationWindow(pg.GraphicsWindow):
                 w = coordinates[e[0]]
                 self.graph.plot(x=[v.x, w.x], y=[v.y, w.y], pen=(0,0,0))
 
-    def showNode(self, evt):
-        mouseCoord = self.graph.vb.mapSceneToView(evt)
+        for n in nodes:
+            v = coordinates[n]
+            xVals.append(round(v.x, 3))
+            yVals.append(round(v.y, 3))
+            
+        self.graph.plot(x=xVals, y=yVals, pen=None, symbol='o', symbolSize=15, symbolBrush=(255,0,0))
+
+    def showNearestNode(self, evt):
+        mouseCoord = self.graph.getPlotItem().vb.mapSceneToView(evt)
         pos = vector.vector(mouseCoord.x(), mouseCoord.y())
         coordinates = self.forceDirectedEngine.nodeCoordinates
         min_ = 1000000
-        node = 0
+        node = None
         for v in coordinates:
             if (pos - coordinates[v]).length() < min_:
                 node = v
                 min_ = (pos - coordinates[v]).length()
-        self.graph.setLabels(title=node)
+        self.showNode(node)
 
-        
-if __name__ =='__main__':
-    app = QApplication(sys.argv)
-    graph = graph.graph()
+    def showNode(self, node):
+        self.titleNode(node)
+        self.highlightNode(node)
 
-    graph.addNode("Pazzi")
-    graph.addNode("Salviati")
-    graph.addNode("Acciaiuolli")
-    graph.addNode("Medici")
-    graph.addNode("Barbadori")
-    graph.addNode("Casteliani")
-    graph.addNode("Strozzi")
-    graph.addNode("Peruzzi")
-    graph.addNode("Bischeri")
-    graph.addNode("Ridolfi")
-    graph.addNode("Tornabiouni")
-    graph.addNode("Guadagini")
-    graph.addNode("Albizzi")
-    graph.addNode("Ginori")
-    graph.addNode("Lamberteschi")
+    #changes the title of the graph to display a node id
+    def titleNode(self, node):
+        self.graph.setLabels(title=(node if type(node) == str else ""))
 
 
-    graph.addUndirectedEdge("Pazzi", "Salviati")
-    graph.addUndirectedEdge("Salviati", "Medici")
-    graph.addUndirectedEdge("Acciaiuolli", "Medici")
-    graph.addUndirectedEdge("Medici", "Barbadori")
-    graph.addUndirectedEdge("Barbadori", "Casteliani")
-    graph.addUndirectedEdge("Casteliani", "Strozzi")
-    graph.addUndirectedEdge("Casteliani", "Peruzzi")
-    graph.addUndirectedEdge("Peruzzi", "Bischeri")
-    graph.addUndirectedEdge("Peruzzi", "Strozzi")
-    graph.addUndirectedEdge("Strozzi", "Bischeri")
-    graph.addUndirectedEdge("Strozzi", "Ridolfi")
-    graph.addUndirectedEdge("Ridolfi", "Medici")
-    graph.addUndirectedEdge("Tornabiouni", "Medici")
-    graph.addUndirectedEdge("Tornabiouni", "Ridolfi")
-    graph.addUndirectedEdge("Medici", "Albizzi")
-    graph.addUndirectedEdge("Albizzi", "Ginori")
-    graph.addUndirectedEdge("Albizzi", "Guadagini")
-    graph.addUndirectedEdge("Guadagini", "Lamberteschi")
-    graph.addUndirectedEdge("Guadagini", "Tornabiouni")
-    graph.addUndirectedEdge("Guadagini", "Bischeri")
-
-    '''
-    graph.addNode("a")
-    graph.addNode("b")
-    graph.addNode("c")
-    graph.addNode("d")
-    graph.addNode("e")
-
-    graph.addUndirectedEdge("a", "b")
-    graph.addUndirectedEdge("a", "c")
-    graph.addUndirectedEdge("b", "c")
-    graph.addUndirectedEdge("a", "e")
-    graph.addUndirectedEdge("b", "d", weight=10)
-    '''
-
-    pg.setConfigOption('background', 'w')
-    pg.setConfigOption('foreground', 'k')
-
-    engine = fde.forceDirectedEngine(graph)
-    win = applicationWindow(engine)
-    win.resize(1000,800)
-    win.show()
-    app.exec_()
-
-
-#base the epsilon values from the zoom ??
+    # highlights a specific node
+    def highlightNode(self, node):
+        if node not in self.forceDirectedEngine.nodeCoordinates.keys():
+            return
+        coord = self.forceDirectedEngine.nodeCoordinates[node]
+        try:
+            self.graph.removeItem(self.oldHighlight)
+        except AttributeError:
+            pass
+        self.oldHighlight = self.graph.plot(x=[coord.x], y=[coord.y], pen=None, symbol='o', symbolSize=20, symbolBrush=(0,255,0))

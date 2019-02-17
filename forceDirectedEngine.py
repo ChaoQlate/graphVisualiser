@@ -1,12 +1,21 @@
 import math
 import copy
 import vector
+import graph
 
 class forceDirectedEngine():
-    def __init__(self, graph):
-        self.graph = graph
+    def __init__(self, g=graph.graph()):
+        self.graph = g
         self.nodeCoordinates = dict()
         
+        if type(g) != graph.graph:
+            raise TypeError("graph paramater is not of {}".format(graph.graph))
+        
+        self.initStartPos()
+        for _ in range(100):
+            self.simulate()
+
+    def initStartPos(self):
         ## nodes are first spaced evenly in a circle with a distance 1 between nodes
         ## in the case of one node, the node is centred
         nodes = self.graph.getNodes()
@@ -17,9 +26,6 @@ class forceDirectedEngine():
             self.nodeCoordinates[nodes[i]] = \
                 vector.vector(radius * math.cos(i * angleInteval), radius * math.sin(i * angleInteval))
 
-        for _ in range(70):
-            self.simulate()
-
     def simulate(self):
         nodes = self.graph.getNodes()
         toDo = [x[:] for x in [[True] * len(nodes)] * len(nodes)]
@@ -27,8 +33,8 @@ class forceDirectedEngine():
 
 
         # loop through nodes
-            # push/pull the other nodes not yet done in the todo array
-            # for every push pull update the nxn todo array
+            # pull other connected nodes
+            # push all other nodes
 
         for i in range(len(nodes)):
             edges = self.graph.getEdges(nodes[i])
@@ -57,12 +63,15 @@ class forceDirectedEngine():
                 toDo[i][j] = False
         self.nodeCoordinates = newNodeCoordinates
 
-    ## attraction based on hookes law
+    ## attraction directly proportional to difference from rest
     @staticmethod
     def attraction(distance, resting, dampening=1):
         return (distance - resting) * dampening
 
-    ## replusion based on coulombs law
+    ## replusion inversely proportional to distance
     @staticmethod
     def repulsion(distance, dampening=30):
         return dampening / distance if distance != 0 else 100
+
+    def getGraph(self):
+        return self.graph

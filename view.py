@@ -6,6 +6,10 @@ import vector
 import time
 import queue
 
+'''
+custom class derived from the pyqt5 package, used as a window for the gui
+contains a forceDirectedEngine for calculations on the coordinates
+'''
 class applicationWindow(QWidget, QtCore.QObject):
     def __init__(self, fde, parent=None):
         pg.setConfigOption('background', 'w')

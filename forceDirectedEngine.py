@@ -3,6 +3,12 @@ import copy
 import vector
 import graph
 
+'''
+forceDirectedEngine is a class used for the calculation of coordinates for a given graph
+The general principle of force directed graphs is it calculates the forces on each individual node
+applying them and the process iterates into a stable position. Connected nodes attract and
+unconnected nodes repel one another.
+'''
 class forceDirectedEngine():
     def __init__(self, g=graph.graph()):
         self.graph = g
@@ -30,11 +36,6 @@ class forceDirectedEngine():
         nodes = self.graph.getNodes()
         toDo = [x[:] for x in [[True] * len(nodes)] * len(nodes)]
         newNodeCoordinates = copy.deepcopy(self.nodeCoordinates)
-
-
-        # loop through nodes
-            # pull other connected nodes
-            # push all other nodes
 
         for i in range(len(nodes)):
             edges = self.graph.getEdges(nodes[i])

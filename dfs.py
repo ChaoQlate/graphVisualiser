@@ -1,3 +1,10 @@
+'''
+This is a python script to view how dfs occurs within a graph
+By default, the map of Italian families of renaissance Italy
+is used and in particular, shows the DFS traversal from Medici
+to Ridolfi.
+'''
+
 import api
 from queue import Queue
 
